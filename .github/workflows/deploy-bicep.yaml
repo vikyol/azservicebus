@@ -19,6 +19,6 @@ jobs:
       with:
         subscriptionId: ${{ secrets.AZURE_SUBSCRIPTION }}
         resourceGroupName: ${{ secrets.AZURE_RG }}
-        template: ./main.bicep
+        template: iac/servicebus.bicep
         parameters: 'serviceBusNamespaceName=superbus'
         failOnStdErr: false
