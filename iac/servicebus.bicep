@@ -1,6 +1,6 @@
 param location string = resourceGroup().location
 param serviceBusNamespaceName string = 'myapp${uniqueString(resourceGroup().id)}'
-param skuName string = 'Basic'
+param skuName string = 'Standard'
 
 param queueNames array = [
   'regular'
