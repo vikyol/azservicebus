@@ -7,6 +7,12 @@ param queueNames array = [
   'priority'
 ]
 
+param topicNames array = [
+  'Sushi'
+  'Pizza'
+  'Pasta'
+]
+
 var deadLetterQueueName = 'dlqfirehose'
 
 resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2018-01-01-preview' = {
@@ -36,4 +42,9 @@ resource queues 'Microsoft.ServiceBus/namespaces/queues@2018-01-01-preview' = [f
   properties: {
     forwardDeadLetteredMessagesTo: deadLetterQueueName
   }
+}]
+
+resource topics 'Microsoft.ServiceBus/namespaces/topics@2022-10-01-preview' = [for topicName in topicNames: {
+  parent: serviceBusNamespace
+  name: topicName
 }]
