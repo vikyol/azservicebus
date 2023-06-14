@@ -1,18 +1,9 @@
-param location string = resourceGroup().location
-param serviceBusNamespaceName string = 'myapp${uniqueString(resourceGroup().id)}'
+param location string
+param serviceBusNamespaceName string
 param skuName string = 'Standard'
-
-param queueNames array = [
-  'regular'
-  'priority'
-]
-
-param topicNames array = [
-  'Sushi'
-  'Pizza'
-  'Pasta'
-]
-
+param queueNames array
+param topicNames array
+param roles array
 var deadLetterQueueName = 'dlqfirehose'
 
 resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2018-01-01-preview' = {
@@ -47,4 +38,14 @@ resource queues 'Microsoft.ServiceBus/namespaces/queues@2018-01-01-preview' = [f
 resource topics 'Microsoft.ServiceBus/namespaces/topics@2022-10-01-preview' = [for topicName in topicNames: {
   parent: serviceBusNamespace
   name: topicName
+}]
+
+resource RoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-preview' = [for assignment in roles:{
+  name: guid(serviceBusNamespace.name, assignment.RoleDefinitionId, assignment.principalId)
+  scope: serviceBusNamespace
+  properties: {
+    roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/${assignment.roleDefinitionId}'
+    principalId: assignment.principalId
+    principalType: assignment.principalType
+  }
 }]
