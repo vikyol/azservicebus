@@ -1,7 +1,9 @@
+param location string = resourceGroup().location
+
 module servicebus './modules/servicebus.bicep' = {
   name: 'servicebus'
   params: {
-    location: orderReceiver.identity.principalId
+    location: location
     serviceBusNamespaceName: 'superbus'
     skuName: 'Standard'
     queueNames: [
@@ -13,7 +15,7 @@ module servicebus './modules/servicebus.bicep' = {
       'Pizza'
       'Pasta'
     ]
-    roles: [
+      roles: [
       {
         roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/090c5cfd-751d-490a-894a-3ce6f1109419'
         principalId: orderReceiver.identity.principalId
@@ -21,8 +23,8 @@ module servicebus './modules/servicebus.bicep' = {
       }
     ]
   }
-}
 
+}
 
 resource orderReceiver 'Microsoft.Logic/workflows@2019-05-01' existing = {
   name: 'busget'
