@@ -1,43 +1,30 @@
 import asyncio
+import random
 from azure.servicebus.aio import ServiceBusClient
 from azure.servicebus import ServiceBusMessage
 from azure.identity.aio import DefaultAzureCredential
 
-FULLY_QUALIFIED_NAMESPACE = "superbus.servicebus.windows.net"
+FULLY_QUALIFIED_NAMESPACE = "orderbus.servicebus.windows.net"
 QUEUE_NAME = "priority"
 
 credential = DefaultAzureCredential()
 
-async def send_single_message(sender):
+category = ['Sushi', 'Pizza', 'Pasta']
+menu = {
+    'Sushi': ['Nigiri', 'Maki', 'Sashimi'],
+    'Pizza': ['Margherita', 'Quattro Formaggi', 'Capricciosa'],
+    'Pasta': ['Pesto', 'Carbonara', 'Bolognese']
+}
+
+async def submit_single_order(sender):
     # Create a Service Bus message and send it to the queue
-    message = ServiceBusMessage("Single Message", application_properties={'Category':'Pizza', 'Type': 'Margherita'},)
+    c = 1 #random.randint(0, 2)
+    t = random.randint(0, 2)
+    message = ServiceBusMessage("Order", application_properties={'Category': category[c], 'Type': menu[category[c]][t]})
     message.application_properties
+    print('Sending message')
     await sender.send_messages(message)
-    print("Sent a single message")
-
-
-async def send_a_list_of_messages(sender):
-    # Create a list of messages and send it to the queue
-    messages = [ServiceBusMessage("Message in list") for _ in range(5)]
-    await sender.send_messages(messages)
-    print("Sent a list of 5 messages")
-
-
-async def send_batch_message(sender):
-    # Create a batch of messages
-    async with sender:
-        batch_message = await sender.create_message_batch()
-        for _ in range(10):
-            try:
-                # Add a message to the batch
-                batch_message.add_message(ServiceBusMessage("Message inside a ServiceBusMessageBatch"))
-            except ValueError:
-                # ServiceBusMessageBatch object reaches max_size.
-                # New ServiceBusMessageBatch object can be created here to send more data.
-                break
-        # Send the batch of messages to the queue
-        await sender.send_messages(batch_message)
-    print("Sent a batch of 10 messages")    
+    print("Sent an order: ", category[c], menu[category[c]][t])
 
 
 async def run():
@@ -47,14 +34,13 @@ async def run():
         credential=credential,
         logging_enable=True) as servicebus_client:
         # get a Queue Sender object to send messages to the queue
+        print('Run...')
+
         sender = servicebus_client.get_queue_sender(queue_name=QUEUE_NAME)
         async with sender:
             # send one message
-            await send_single_message(sender)
-            # send a list of messages
-            #await send_a_list_of_messages(sender)
-            # send a batch of messages
-            #await send_batch_message(sender)
+            print('Sending message.......')
+            await submit_single_order(sender)
 
         # Close credential when no longer needed.
         await credential.close()

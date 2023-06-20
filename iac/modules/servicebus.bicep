@@ -4,14 +4,20 @@ param skuName string = 'Standard'
 param queueNames array
 param topicNames array
 param roles array
+param disableLocalAuth bool = false
+param zoneRedundant bool = false
 var deadLetterQueueName = 'dlqfirehose'
 
-resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2018-01-01-preview' = {
+resource serviceBusNamespace 'Microsoft.ServiceBus/namespaces@2022-10-01-preview' = {
   name: serviceBusNamespaceName
   location: location
   sku: {
     name: skuName
   }
+  properties: {
+    disableLocalAuth: disableLocalAuth
+    zoneRedundant: zoneRedundant
+}
 }
 
 resource deadLetterFirehoseQueue 'Microsoft.ServiceBus/namespaces/queues@2018-01-01-preview' = {
@@ -44,7 +50,7 @@ resource RoleAssignment 'Microsoft.Authorization/roleAssignments@2020-10-01-prev
   name: guid(serviceBusNamespace.name, assignment.RoleDefinitionId, assignment.principalId)
   scope: serviceBusNamespace
   properties: {
-    roleDefinitionId: '/providers/Microsoft.Authorization/roleDefinitions/${assignment.roleDefinitionId}'
+    roleDefinitionId: assignment.RoleDefinitionId
     principalId: assignment.principalId
     principalType: assignment.principalType
   }
